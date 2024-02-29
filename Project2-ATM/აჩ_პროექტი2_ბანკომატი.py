@@ -2,13 +2,16 @@ import csv
 import os
 import random
 
+# გლობალურად გამოსაყენებელი ცვლადები
 user_id = 0
 logged_in_user_id = None
 user_data = []
 
+# ნახულობს სკრიპტის გაშვების ზუსტ მისამართს და იყენებს მას ცსვ ფაილისთვის
 script_directory = os.path.dirname(os.path.abspath(__file__))
 csv_file_path = os.path.join(script_directory, 'user_data.csv')
 
+# იღებს user_data -ს ცსვ ფაილიდან
 def load_user_data():
     global user_data
     try:
@@ -16,13 +19,16 @@ def load_user_data():
             reader = csv.reader(file)
             user_data = [list(map(float, row)) for row in reader]
     except FileNotFoundError:
+        # თუ ვერ იპოვა იმ შემთხვევაში იქნება ცარიელი
         user_data = []
 
 load_user_data()
 
+# ვაგენერირებ მომხმარებლის არსებულ წარმოსახვით ბალანსს
 def generate_random_balance():
-    return round(random.uniform(1000, 10000), 2)
+    return round(random.uniform(1000, 10000))
 
+# პინის დარეგისტრირება
 def pin_register():
     global user_id, user_data
     if not user_data:
@@ -30,35 +36,29 @@ def pin_register():
     else:
         user_id = max(user[0] for user in user_data) + 1
 
-    print()
-    print("Please Set-up your PIN [first time only]")
+    print("\nPlease Set-up your PIN [first time only]")
     while True:
-        print()
-        print("1st attempt ↓")
-        print()
+        print("\n1st attempt ↓")
         user_input = input("XXXX:")
+        # ვალიდაციები
         if not (user_input.isdigit() and len(user_input) == 4):
-            print()
-            print(f"[{user_input}] does not match the correct criteria for the PIN, Please enter a valid 4 digits number")
+            print(f"\n[{user_input}] does not match the correct criteria for the PIN, Please enter a valid 4 digits number")
             continue
-        print()
-        print("Please Repeat the pin for confirmation\n")
-        print("2nd attempt ↓\n")
-        user_input_repeat = input("XXXX:")
-        if not (user_input_repeat.isdigit() and len(user_input_repeat) == 4):
-            print()
-            print(f"[{user_input_repeat}] does not match the correct criteria for the PIN, Please enter a valid 4 digits number")
-        elif user_input != user_input_repeat:
-            print()
-            print("Pins provided do not match, Please try again from the beginning\n")
-            continue
-        elif user_input == user_input_repeat:
-            user_data.append([user_id, int(user_input), generate_random_balance()])
-            print()
-            print("Your PIN was Successfully Registered \u2713")
-            write_user_data_to_csv()
-            return user_id
 
+        print("\nPlease Repeat the pin for confirmation\n2nd attempt ↓\n")
+        user_input_repeat = input("XXXX:")
+        # განმეორებითი შეყვანის ვალიდაცია
+        if not (user_input_repeat.isdigit() and len(user_input_repeat) == 4) or user_input != user_input_repeat:
+            print("\nPins provided do not match, Please try again from the beginning\n")
+            continue
+
+        # დარეგისტრირების შემდეგ ვამატებ ცსვ ფაილში
+        user_data.append([int(user_id), int(user_input), generate_random_balance()])
+        print("\nYour PIN was Successfully Registered ✓")
+        write_user_data_to_csv()
+        return user_id
+
+# პინით დალოგინება, შესაძებელია მხოლოდ იმ შემთხვევაში თუ ცვს ფაილში არსებობს უკვე რეგისტირებული მოხმარებლის ინფორმაცია
 def pin_login():
     global user_data, logged_in_user_id
 
@@ -76,6 +76,7 @@ def pin_login():
             print("Invalid input. User ID and PIN must be numeric. Please try again.")
             continue
 
+        # ვამოწმებ შეყვანილი ინფორმაციის არსებობას/დამთხვევას
         for user in user_data:
             if user_input_id == user[0] and user_input_pin == user[1]:
                 print("Login Successful!")
@@ -84,12 +85,14 @@ def pin_login():
 
         print("Incorrect User ID or PIN, Please try again")
 
+# ვწერთ ცსვ ფაილში
 def write_user_data_to_csv():
     global user_data
     with open(csv_file_path, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerows(user_data)
 
+# ფუნქცია რომელიც აჩვენებს მომხმარებლის ინფორმაციას
 def display_user_details(user_id):
     global user_data
     for user in user_data:
@@ -99,12 +102,13 @@ def display_user_details(user_id):
             print(f"User Balance: ${user[2]}")
             break
 
+# თანხის შეტანა/დამატება
 def add_money(user_id):
     global user_data
     try:
-        amount = float(input("Enter the amount to add to your balance: $"))
+        amount = int(input("Enter the amount to add to your balance: $"))
     except ValueError:
-        print("Invalid input. Please enter a valid numeric amount.")
+        print("Invalid input. Please enter a valid whole numeric amount.")
         return
 
     for user in user_data:
@@ -114,12 +118,13 @@ def add_money(user_id):
             write_user_data_to_csv()
             break
 
+# თანხის გამოტანა
 def withdraw_money(user_id):
     global user_data
     try:
-        amount = float(input("Enter the amount to withdraw from your balance: $"))
+        amount = int(input("Enter the amount to withdraw from your balance: $"))
     except ValueError:
-        print("Invalid input. Please enter a valid numeric amount.")
+        print("Invalid input. Please enter a valid whole numeric amount.")
         return
 
     for user in user_data:
@@ -132,6 +137,7 @@ def withdraw_money(user_id):
                 print("Insufficient balance. Withdrawal not allowed.")
             break
 
+# მენიუ
 def main_menu():
     global user_data, logged_in_user_id
     print("Welcome to the ATM")
@@ -141,7 +147,7 @@ def main_menu():
             print("1. Register")
             print("2. Login")
         else:
-            print(f"Logged in as User ID: {logged_in_user_id}")
+            print(f"Logged in as User ID: {int(logged_in_user_id)}")
             print("3. Display User Details")
             print("4. Add Money to Balance")
             print("5. Withdraw Money from Balance")
@@ -179,6 +185,7 @@ def main_menu():
                 break
             else:
                 print("Invalid choice. Please enter a valid option.")
+
 
 if __name__ == "__main__":
     main_menu()
