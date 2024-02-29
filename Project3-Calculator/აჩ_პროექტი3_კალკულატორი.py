@@ -1,18 +1,19 @@
+# დამატება
 def addition(a, b):
     return a + b
-
+# გამოკლება
 def subtraction(a, b):
     return a - b
-
+# გამრავლება
 def multiplication(a, b):
     return a * b
-
+# გაყოფა
 def division(a, b):
     if b != 0:
         return a / b
     else:
         return "Cannot divide by zero"
-
+# ციკლი მოქმედების ასარჩევად
 while True:
     print("Select operation:")
     print("1. Add")
